@@ -1,0 +1,91 @@
+CUBIC, vestion 1.4.
+
+0) Prerequisite: make sure the PARI/GP library is installed on your system
+
+1) Configuration: the default Makefile, assumes that your PARI/GP library
+is not too old (more recent than 2.9.0), was compiled with gmp, and is
+installed in the standard location. As would be produced by the standard
+  ./Configure && make install
+Have a look at the numbered configuration options at the top of 'Makefile';
+modify if your installation is non-standard.
+
+2) Compilation: simply type
+
+  make 
+
+This will produce two binaries :
+  cubic-noprint: only *count* the fields
+  cubic        : also *output* the fields (about ten times slower).
+
+3) Usage: both binaries use the same syntax, with a single argument
+describing a range of discriminants. Restriction: the discriminants
+considered must all have the same signs.
+
+  1000          : discriminants in [0, 1000]
+  -1000         : discriminants in [-1000, 0]
+  [1000, 2000]  : discriminants in [1000, 2000]
+  [-2000, -1000]: discriminants in [-2000, -1000]
+  [-2000, 2000] : FORBIDDEN (different signs!)
+  [58343207081] : discriminants EXACTLY 58343207081
+
+You may use any arithmetic expression in the GP language provided it is
+enclosed within quotes:
+
+  ./cubic-noprint "2*10^10"
+
+Extra Flags:
+  -g <debuglevel>: be increasingly verbose [ default: 0 ]
+
+4) References
+
+Author: Karim Belabas, IMB (UMR 5251)
+  Univ. Bordeaux, 351 cours de la Liberation, F-33405 Talence (France)
+  http://www.math.u-bordeaux.fr/~kbelabas/
+
+@article {MR1415795,
+    AUTHOR = {Belabas, Karim},
+     TITLE = {A fast algorithm to compute cubic fields},
+   JOURNAL = {Math. Comp.},
+  FJOURNAL = {Mathematics of Computation},
+    VOLUME = {66},
+      YEAR = {1997},
+    NUMBER = {219},
+     PAGES = {1213--1237},
+      ISSN = {0025-5718},
+     CODEN = {MCMPAF},
+   MRCLASS = {11Y40 (11R16)},
+  MRNUMBER = {MR1415795 (97m:11159)},
+MRREVIEWER = {Joe P. Buhler},
+}
+
+@article {MR2059751,
+    AUTHOR = {Belabas, Karim},
+     TITLE = {On quadratic fields with large 3-rank},
+   JOURNAL = {Math. Comp.},
+  FJOURNAL = {Mathematics of Computation},
+    VOLUME = {73},
+      YEAR = {2004},
+    NUMBER = {248},
+     PAGES = {2061--2074 (electronic)},
+      ISSN = {0025-5718},
+     CODEN = {MCMPAF},
+   MRCLASS = {11R11 (11R16 11R29 11Y40)},
+  MRNUMBER = {MR2059751 (2005c:11132)},
+MRREVIEWER = {Michel Olivier},
+}
+
+5) License:
+
+This software (the 'cubic' package) is released under the GNU General Public
+License (version 2 or above at your convenience). It is free software,
+covered by the GNU General Public License, and comes WITHOUT ANY WARRANTY
+WHATSOEVER.
+
+PARI/GP is free software, covered by the GNU General Public License.
+
+6) Version history:
+CUBIC, v1.4, 10/04/2025: update for recent gcc/ld (duplicate symbols)
+CUBIC, v1.3, 25/07/2016: update for pari-2.9
+CUBIC, v1.2, 22/07/2011: remove most 'printf'
+CUBIC, v1.1, 22/06/2011: fix Makefile, improve README.
+CUBIC, v1.0, 15/07/2009: initial public release (stable version).
