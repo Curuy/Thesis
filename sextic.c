@@ -44,7 +44,7 @@ void sieve_sextic_window(GEN X, GEN delta)
         GEN q_max = gdivent(X_delta, f4);
         GEN d2_max_floor_gen = sqrtnint(q_max, 3);
         long D2_max = itos(d2_max_floor_gen);
-
+        //debug("D2 min: %ld, D2 max: %ld", D2_min, D2_max);
         // search for such a D2
         for (long d2_abs = D2_min; d2_abs <= D2_max; d2_abs++)
         {
@@ -84,8 +84,8 @@ void sieve_sextic_window(GEN X, GEN delta)
         }
         avma = av_f;
     }
-    debug("SIEVE DONE: %ld / %ld", valids, candidates);
-    debug("real:%ld  complex:%ld", real_fields, complex_fields);
+    printf("SIEVE DONE: %ld / %ld\n", valids, candidates);
+    printf("real:%ld  complex:%ld, total: %ld\n", real_fields, complex_fields, real_fields + complex_fields);
     avma = ltop;
 }
 

@@ -1,5 +1,7 @@
 CUBIC, vestion 1.4.
 
+Modified version of Belabas' algorithm to generate S3 sextic polynomials in a range [X, X + Delta]
+
 0) Prerequisite: make sure the PARI/GP library is installed on your system
 
 1) Configuration: the default Makefile, assumes that your PARI/GP library
