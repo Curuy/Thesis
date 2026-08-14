@@ -1,21 +1,14 @@
-#include "cubic.h"
-#include <omp.h>
+#include "sextic.h"
 
-#include "debug.h"
-
-void sieve_sextic_window(GEN X, GEN delta, int num_threads);
-
-void sieve_sextic_window(GEN X, GEN delta, int num_threads)
+void sextic_window(GEN Y, GEN X, int num_threads, long* out_real, long* out_complex)
 {
     pari_sp ltop = avma;
-    // X + delta
-    GEN X_delta = addii(X, delta);
     
     debug("START OF SIEVE: [%s, %s]", GENtostr(X), GENtostr(X_delta));
 
-    // floor( ((X + delta) / 27) ^ (1/4) )
-    GEN X_delta_27 = gdivent(X_delta, stoi(27));
-    GEN max_f_gen = sqrtnint(X_delta_27, 4);
+    // floor( ((X) / 27) ^ (1/4) )
+    GEN X_27 = gdivent(X, stoi(27));
+    GEN max_f_gen = sqrtnint(X_27, 4);
     long max_f = itos(max_f_gen);
     debug("Max f: %ld", max_f);
     
@@ -47,8 +40,8 @@ void sieve_sextic_window(GEN X, GEN delta, int num_threads)
             GEN f_gen = stoi(f);
             GEN f4 = mulii(sqri(f_gen), sqri(f_gen));
             
-            // low bound for |D2| >= (X / f^4)^(1/3)
-            GEN num_min = addii(X, subis(f4, 1));
+            // low bound for |D2| >= (Y / f^4)^(1/3)
+            GEN num_min = addii(Y, subis(f4, 1));
             GEN q_min = gdivent(num_min, f4);
             GEN d2_min_floor_gen = sqrtnint(q_min, 3);
             long D2_min = itos(d2_min_floor_gen);
@@ -58,8 +51,8 @@ void sieve_sextic_window(GEN X, GEN delta, int num_threads)
                 D2_min++;
             }
             
-            // upper bound for |D2| <= ((X + delta) / f^4)^(1/3)
-            GEN q_max = gdivent(X_delta, f4);
+            // upper bound for |D2| <= ((X) / f^4)^(1/3)
+            GEN q_max = gdivent(X, f4);
             GEN d2_max_floor_gen = sqrtnint(q_max, 3);
             long D2_max = itos(d2_max_floor_gen);
 
@@ -116,48 +109,9 @@ void sieve_sextic_window(GEN X, GEN delta, int num_threads)
     free(pth);
 
     printf("SIEVE DONE: %ld / %ld\n", valids, candidates);
-    printf("real:%ld  complex:%ld, total: %ld\n", real_fields, complex_fields, real_fields + complex_fields);
+
+    *out_real = real_fields;
+    *out_complex = complex_fields;
     avma = ltop;
 }
 
-void init_primes(unsigned long lim);
-extern __thread unsigned long HH, HH1;
-
-int main(int argc, char** argv)
-{
-    if (argc < 3)
-    {
-        fprintf(stderr, "usage: %s <X> <delta>\n", argv[0]);
-        exit(1);
-    }
-    int num_threads = 0;
-    pari_init(10000000, 2); 
-    if (argc == 4)
-    {
-        // thread number specified
-        GEN g = gp_read_str(argv[3]);
-        if (typ(g) != t_INT) 
-        {
-            fprintf(stderr, "error: thread number must be integer.\n");
-            pari_close();
-            return 1;
-        }
-        num_threads = itos(g);
-    }
-
-
-    init_primes(100000); 
-    HH = 0;
-    HH1 = 0;
-    
-    GEN X = gp_read_str(argv[1]);
-    GEN delta = gp_read_str(argv[2]);
-
-    pari_timer T;
-    TIMERstart(&T);
-
-    sieve_sextic_window(X, delta, num_threads);
-
-    pari_printf("Execution Time: %ld ms\n", TIMER(&T));
-    return 0;
-}
