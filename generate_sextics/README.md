@@ -37,26 +37,26 @@ The compiled executable is named `sextic` and accepts mathematical expressions (
 
 **Syntax:**
 ```bash
-./sextic <X> <Delta> [num_threads]
+./sextic <Y> <X> [num_threads]
 ```
-*   `X`: The starting bound.
-*   `Delta`: The range to search above `X`.
-*   `num_threads` *(Optional)*: The number of CPU threads to use. If omitted or set to `0`, the program defaults to using all available CPU cores.
-
+*   `Y`: Starting bound.
+*   `X`: Ending bound 
+*   `num_threads` *(Optional)*: Number of threads. Default is use all threads 
 **Examples:**
 ```bash
-# Search from 0 to 10^10 using all available CPU threads
+# Search from 0 to 10^10 all available threads
 ./sextic 0 10^10
 
-# Search from 10^12 to (10^12 + 1000) using exactly 4 threads
-./sextic 10^12 1000 4
+# Search from 10^12 to 10^14 using 4 threads
+./sextic 10^12 10^14 4
 ```
 
 ---
 
 ## 4. Running the Tests
 
-The project includes an automated test suite located in the `test/` directory. The test architecture compiles standalone executables for each test file, safely isolating the `main()` logic.
+Has some tests which compare results from 
+https://arxiv.org/pdf/1208.2170
 
 **To run the entire test suite automatically:**
 ```bash
