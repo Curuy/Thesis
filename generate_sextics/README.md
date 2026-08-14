@@ -1,7 +1,6 @@
 
 Generating $S_3$ sextic polynomials in a given discriminant range `[Y, X]`. 
 
-It is a heavily modified, parallelized extension of the **CUBIC** package (v1.4) originally developed by Karim Belabas.
 It uses **CUBIC** package (v1.4) developed by Karim Belabas.
 ---
 
@@ -63,6 +62,7 @@ https://arxiv.org/pdf/1208.2170
 ./run_tests.sh
 ```
 
+AI was used to generate this README
 
 **Author of original algorithm:**
 Karim Belabas, IMB (UMR 5251)
