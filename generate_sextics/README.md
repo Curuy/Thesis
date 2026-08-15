@@ -1,5 +1,5 @@
 
-Generating $S_3$ sextic polynomials in a given discriminant range `[Y, X]`. 
+Generating non-cyclic cubic polynomials with discriminant (absolute) of the $S_3$ extension in the range range `[Y, X]`. 
 
 It uses **CUBIC** package (v1.4) developed by Karim Belabas.
 ---
@@ -21,18 +21,19 @@ To compile the project, open your terminal in the project root and run:
 
 ```bash
 make
-
+```
 ### Builds
-*   **`make noprint`**: (Recommended for large ranges). Compiles an optimized version that does not print every matched field to the terminal. This is crucial for heavily multithreaded runs to avoid terminal I/O bottlenecks and segmentation faults.
+*   **`make noprint`**: (Recommended for large ranges). 
 *   **`make debug`**: Compiles with debug flags enabled.
 *   **`make profile`**: Compiles with profiling flags (`-pg`) for performance analysis.
-*   **`make clean`**: Safely removes all compiled object files, test binaries, and build directories.
+*   **`make clean`**: Safely removes all binary files
 
 ---
 
 ## 3. Usage
 
 The compiled executable is named `sextic` and accepts mathematical expressions (like `10^10`) natively using PARI's string parser.
+The compiled executable is `sextic` and accepts PARI expressions (like `10^10`).
 
 **Syntax:**
 ```bash
