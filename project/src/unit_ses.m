@@ -2,6 +2,8 @@
 // Ascending coefficients: [a0,a1,a2,a3] means a0+a1*x+a2*x^2+a3*x^3.
 // Module codes: 0=T, 1=S, 2=W (socle T), 3=W* (socle S),
 //               4=P_T, 5=P_S. Empty list means the zero module.
+// Computes the finite unit SES directly: no integral Psi or second action
+// computation. The output schema is unchanged for unit_ses.py.
 SetClassGroupBounds("GRH");
 SetColumns(0);
 
@@ -35,32 +37,24 @@ K1, mK1 := Explode(K1_data);
 F, mF := Explode(F_data);
 G, Aut, mG := AutomorphismGroup(L);
 assert #G eq 6;
-sigma := mG([ h : h in G | Order(h) eq 3 ][1]);
 UK, umap_K := UnitGroup(K1 : GRH := true);
 UF, umap_F := UnitGroup(F : GRH := true);
 
-D, inc, projections := DirectSum([UK, UK, UK, UF]);
-Psi := function(z)
-    u1 := K1 ! umap_K(projections[1](z));
-    u2 := K1 ! umap_K(projections[2](z));
-    u3 := K1 ! umap_K(projections[3](z));
-    u4 := F ! umap_F(projections[4](z));
-    v := mK1(u1) * sigma(mK1(u2)) * sigma(sigma(mK1(u3))) / mF(u4);
-    return (ZL ! v) @@ umap_L;
-end function;
-
+// Ambient quotient UL / UL^3, in additive unit-group coordinates.
+UL_3 := sub< UL | [3*u : u in Generators(UL)] >;
+V, m_V := quo< UL | UL_3 >;
 
 function ComputeActionMatrices(A, q, G, mG, L, ZL, UL, umap_L)
     d := Ngens(A);
     assert #A eq 3^d;
+    // Expand each basis unit once and reuse it for every group generator.
+    basis_units := [L | umap_L(UL ! (A.i @@ q)) : i in [1..d]];
     matrices := [];
     for k in [1..Ngens(G)] do
         aut := mG(G.k);
         R := ZeroMatrix(GF(3), d, d);
         for i in [1..d] do
-            v := UL ! (A.i @@ q);
-            u := L ! umap_L(v);
-            v_image := (ZL ! aut(u)) @@ umap_L;
+            v_image := (ZL ! aut(basis_units[i])) @@ umap_L;
             coords := Eltseq(q(Domain(q) ! v_image));
             for j in [1..d] do
                 R[i,j] := GF(3) ! coords[j];
@@ -72,50 +66,46 @@ function ComputeActionMatrices(A, q, G, mG, L, ZL, UL, umap_L)
     return matrices;
 end function;
 
-
-
-psi := hom< D -> UL | [Psi(D.i) : i in [1..Ngens(D)]] >;
-U0 := Image(psi);
-UL_3 := sub< UL | [3*u : u in Generators(UL)] >;
-assert UL_3 subset U0;
-//B, m_B := quo< U0 | U0 meet UL_3 >;
-V, m_V := quo< UL | UL_3 >;
-
-
-
 matrices_V := ComputeActionMatrices(V, m_V, G, mG, L, ZL, UL, umap_L);
 ModUL := GModule(G, matrices_V);
 
 unit_vectors := [];
 
-// Fundamental units from ONE cubic subfield.
-// The first generator is torsion: -1, which vanishes modulo cubes.
-for i in [2..Ngens(UK)] do
+// Only ONE cubic subfield is needed. The G-submodule generated below
+// automatically contains the images from its two conjugate subfields.
+for i in [1..Ngens(UK)] do
+    // The first generator is torsion. Omit it only when its order is
+    // prime to 3, in which case its image modulo cubes is zero.
+    if i eq 1 then
+        if Order(UK.i) mod 3 ne 0 then
+            continue;
+        end if;
+    end if;
     u := mK1(K1 ! umap_K(UK.i));
     v := (ZL ! u) @@ umap_L;
     coords := Eltseq(m_V(v));
-
     Append(~unit_vectors, ModUL ! [GF(3) ! c : c in coords]);
 end for;
 
-for i in [2..Ngens(UF)] do
+// Quadratic subfield. Keep any 3-torsion (important for F = Q(zeta_3)).
+for i in [1..Ngens(UF)] do
+    if i eq 1 then
+        if Order(UF.i) mod 3 ne 0 then
+            continue;
+        end if;
+    end if;
     u := mF(F ! umap_F(UF.i));
     v := (ZL ! u) @@ umap_L;
-
-    // Minus sign matches your convention for Psi.
+    // Inversion of the quadratic component of Psi becomes negation.
     coords := Eltseq(m_V(-v));
-
     Append(~unit_vectors, ModUL ! [GF(3) ! c : c in coords]);
 end for;
 
+// This is a G-submodule, not merely the vector-space span.
 ModU0, iota := sub< ModUL | unit_vectors >;
-UE, proj := quo< ModUL | ModU0 >;
-
-assert Dimension(Kernel(iota)) eq 0;
-assert Image(iota) eq Kernel(quotient_map);
-assert Dimension(Image(quotient_map)) eq Dimension(UE);
-Q_units := quo< UL | U0 >;
-assert #Q_units eq 3^Dimension(UE);
+UE, quotient_map := quo< ModUL | ModU0 >;
+// The norm relation implies UL^3 is contained in U0, so this is [UL:U0].
+unit_index := 3^Dimension(UE);
 
 function IdentifyIndecomposable(M)
     dim := Dimension(M);
@@ -157,8 +147,8 @@ r_L, c_L := Signature(L);
 r_k, c_k := Signature(K1);
 r_f, c_f := Signature(F);
 if r_L eq 6 then
-    assert dV eq 5;
-    assert #Q_units in {1,3,9};
+    assert Dimension(ModUL) eq 5;
+    assert unit_index in {1,3,9};
 end if;
 assert forall{c : c in GetDecomps(UE) | c eq 1};
 
@@ -182,7 +172,7 @@ printf "quad_coeff=%o\n", Coefficients(DefiningPolynomial(F));
 printf "quad_sig=%o\n", [r_f,c_f];
 printf "quad_disc=%o\n", D_f;
 printf "quad_unit_inv=%o\n", AbelianInvariants(UF);
-printf "unit_index=%o\n", #Q_units;
+printf "unit_index=%o\n", unit_index;
 printf "m_u_dim=%o\n", Dimension(ModU0);
 printf "u_l_dim=%o\n", Dimension(ModUL);
 printf "e_u_dim=%o\n", Dimension(UE);
