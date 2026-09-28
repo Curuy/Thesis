@@ -111,23 +111,6 @@ end for;
 ModU0, iota := sub< ModUL | unit_vectors >;
 UE, proj := quo< ModUL | ModU0 >;
 
-
-
-dB := Ngens(B);
-dV := Ngens(V);
-Tmat := ZeroMatrix(GF(3), dB, dV);
-for i in [1..dB] do
-    coords := Eltseq(m_V(UL ! (B.i @@ m_B)));
-    for j in [1..dV] do
-        Tmat[i,j] := GF(3) ! coords[j];
-    end for;
-end for;
-assert Rank(Tmat) eq dB;
-for k in [1..Ngens(G)] do
-    assert matrices_B[k] * Tmat eq Tmat * matrices_V[k];
-end for;
-iota := hom< ModU0 -> ModUL | Tmat >;
-UE, quotient_map := quo< ModUL | Image(iota) >;
 assert Dimension(Kernel(iota)) eq 0;
 assert Image(iota) eq Kernel(quotient_map);
 assert Dimension(Image(quotient_map)) eq Dimension(UE);
