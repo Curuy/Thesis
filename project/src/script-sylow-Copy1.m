@@ -6,17 +6,17 @@ X := StringToInteger(X);
 is_real := (is_real eq "1");
 Q<x> := PolynomialRing(Rationals());
 
-coeff := GenerateCubics(X, is_real);
-//coeff := [21, 54, -30, -73];
-//coeff := [104, 195, -481, -34]; // C cong to triv^2 + sgn + W
-//coeff := [127, 106, -415, -15]; // C cong to triv + sgn + W + W*
+//coeff := GenerateCubics(X, is_real);
 
-coeff := [137, 671, -597, -264];
+coeff := [193, 489, -873, -379];
+
 g := Q!coeff;
 
+//g := -87*x^3 - 65*x^2 + 98*x + 6;
 
 
 L := SplittingField(g);
+
 
 f_def := DefiningPolynomial(L);
 L_coeff := Coefficients(f_def);
@@ -167,33 +167,23 @@ coker_psi := quo < Sylow3 | im_psi>;
 print <Invariants(im_psi), #im_psi, Invariants(ker_psi), #ker_psi, Invariants(coker_psi), #coker_psi>;
 
 
-function ComputeActionMatrices(Q, mQ, G, mG, L, ZL, Cl_map)
-    // Given Q with d generators, see how the generatos of G act on Q.
-    // These objects are class groups however since Q is a quotient, X / 3*Cl, to get their view in the proper domain must take their preimage in mQ so that it is compatible with Cl map
-    d := Ngens(Q);
+function ComputeActionMatrices(QuotientGrp, QuotMap, G, mG, L, ZL, Cl_map)
+    d := Ngens(QuotientGrp);
     F3 := GaloisField(3);
     matrices := [];
-    DomainQ := Domain(mQ); // Domain of the map.
+    DomainGrp := Domain(QuotMap); // Can be M_L or Sylow3
     
     for g in Generators(G) do
         aut := mG(g);
-        // Want to construct a Mat_F3(d) matrix
         M_g := ZeroMatrix(F3, d, d);
         for i in [1..d] do
-            // Get the pre image of Q.i in mQ.
-            s := Q.i @@ mQ;
+            s := QuotientGrp.i @@ QuotMap;
             I := Cl_map(Cl ! s);
-            // apply the action. First view the generators of x in L then we want an ideal so create the ideal over Zl.
             J := ideal< ZL | [ aut(L ! x) : x in Generators(I) ] >;
             
-            // pullback to cl and construct the map.
-            I_cl := DomainQ ! (J @@ Cl_map); 
-            coords := Eltseq(mQ(I_cl));
-            // we want a right action so,
-            // sigma(q) = q sigma for a q in Q
-            // This corresponds to,
-            // (q.1, q.2, q.3) sigma = (sigma(q.1) \\ sigma(q.2) \\ sigma(q.3))
-            // I.e. each row corresponds to how sigma acts on the ith generator.
+            // Pullback to Cl, coerce to the subgroup domain, then map to quotient
+            I_cl := DomainGrp ! (J @@ Cl_map); 
+            coords := Eltseq(QuotMap(I_cl));
             for j in [1..d] do
                 M_g[i, j] := F3 ! coords[j];
             end for;
@@ -207,11 +197,10 @@ M_L := im_psi;
 Cl_3 := sub< Cl | [ 3*x : x in Generators(Cl) ] >;
 
 B, m_B := quo< M_L | M_L meet Cl_3 >;
-print B, m_B;
 matrices_B := ComputeActionMatrices(B, m_B, G, mG, L, ZL, m);
 
-V, m_V := quo< Sylow3 | Sylow3 meet Cl_3 >;
-matrices_V := ComputeActionMatrices(V, m_V, G, mG, L, ZL, m);
+V, q_V := quo< Sylow3 | Sylow3 meet Cl_3 >;
+matrices_V := ComputeActionMatrices(V, q_V, G, mG, L, ZL, m);
 
 // 0 is trivial, 1 is sign, 2 is W, 3 is W dual, 4 is F3, 5 is F3 dual
 function IdentifyIndecomposable(M)
@@ -237,34 +226,19 @@ end function;
 dB := Ngens(B);
 dV := Ngens(V);
 T := ZeroMatrix(GaloisField(3), dB, dV);
-// We now want to create an injective map from B to V. 
-// We just need to know how the generators of B are "viewed" in V
-// To do that, we just view each generator of B in V
 
 for i in [1..dB] do
-    v_elem := m_V( Cl ! (B.i @@ m_B) );
+    v_elem := q_V( Cl ! (B.i @@ m_B) );
     coords := Eltseq(v_elem);
     for j in [1..dV] do
         T[i,j] := coords[j];
     end for;
 end for;
 
-
-
-
-
-
 ModM_L := GModule(G, matrices_B);
 ModC_L := GModule(G, matrices_V);
 iota := hom< ModM_L -> ModC_L | T >;
 E, proj := quo< ModC_L | Image(iota)>;
-
-
-
-
-
-//print ActionGenerators(Image(iota));
-
 
 // Extract properties
 get_decomps := func< M | Sort([ IdentifyIndecomposable(m) : m in Decomposition(M) ]) >;
@@ -282,4 +256,4 @@ else
     print [];
 end if;
 
-//exit;
+exit;
