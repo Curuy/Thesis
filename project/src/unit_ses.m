@@ -48,12 +48,7 @@ Psi := function(z)
     v := mK1(u1) * sigma(mK1(u2)) * sigma(sigma(mK1(u3))) / mF(u4);
     return (ZL ! v) @@ umap_L;
 end function;
-psi := hom< D -> UL | [Psi(D.i) : i in [1..Ngens(D)]] >;
-U0 := Image(psi);
-UL_3 := sub< UL | [3*u : u in Generators(UL)] >;
-assert UL_3 subset U0;
-B, m_B := quo< U0 | U0 meet UL_3 >;
-V, m_V := quo< UL | UL_3 >;
+
 
 function ComputeActionMatrices(A, q, G, mG, L, ZL, UL, umap_L)
     d := Ngens(A);
@@ -77,10 +72,46 @@ function ComputeActionMatrices(A, q, G, mG, L, ZL, UL, umap_L)
     return matrices;
 end function;
 
-matrices_B := ComputeActionMatrices(B, m_B, G, mG, L, ZL, UL, umap_L);
+
+
+psi := hom< D -> UL | [Psi(D.i) : i in [1..Ngens(D)]] >;
+U0 := Image(psi);
+UL_3 := sub< UL | [3*u : u in Generators(UL)] >;
+assert UL_3 subset U0;
+//B, m_B := quo< U0 | U0 meet UL_3 >;
+V, m_V := quo< UL | UL_3 >;
+
+
+
 matrices_V := ComputeActionMatrices(V, m_V, G, mG, L, ZL, UL, umap_L);
-ModU0 := GModule(G, matrices_B);
 ModUL := GModule(G, matrices_V);
+
+unit_vectors := [];
+
+// Fundamental units from ONE cubic subfield.
+// The first generator is torsion: -1, which vanishes modulo cubes.
+for i in [2..Ngens(UK)] do
+    u := mK1(K1 ! umap_K(UK.i));
+    v := (ZL ! u) @@ umap_L;
+    coords := Eltseq(m_V(v));
+
+    Append(~unit_vectors, ModUL ! [GF(3) ! c : c in coords]);
+end for;
+
+for i in [2..Ngens(UF)] do
+    u := mF(F ! umap_F(UF.i));
+    v := (ZL ! u) @@ umap_L;
+
+    // Minus sign matches your convention for Psi.
+    coords := Eltseq(m_V(-v));
+
+    Append(~unit_vectors, ModUL ! [GF(3) ! c : c in coords]);
+end for;
+
+ModU0, iota := sub< ModUL | unit_vectors >;
+UE, proj := quo< ModUL | ModU0 >;
+
+
 
 dB := Ngens(B);
 dV := Ngens(V);
